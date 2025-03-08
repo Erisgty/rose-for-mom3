@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D玫瑰 - 妇女节快乐</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #message {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff3366;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="message">🌹 妈妈，妇女节快乐！永远爱您！ 🌹</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, rose;
+
+        function init() {
+            // 初始化场景
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // 添加灯光
+            const light = new THREE.PointLight(0xff4466, 1.5, 100);
+            light.position.set(10, 10, 10);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0xff9966, 0.5));
+
+            // 创建玫瑰几何体
+            createRoseGeometry();
+
+            camera.position.z = 5;
+
+            // 自动旋转
+            document.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createRoseGeometry() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+
+            // 玫瑰参数方程
+            const numPoints = 2000;
+            for (let i = 0; i < numPoints; i++) {
+                const t = i * 0.1;
+                const r = 0.5 * Math.cos(6 * t) * Math.cos(t);
+                const x = r * Math.cos(t);
+                const y = r * Math.sin(t);
+                const z = 0.5 * Math.sin(6 * t);
+
+                vertices.push(x, y, z);
+                colors.push(0.9, 0.2 + Math.random()*0.3, 0.3 + Math.random()*0.3);
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            rose = new THREE.Points(geometry, material);
+            scene.add(rose);
+        }
+
+        function onMouseMove(event) {
+            rose.rotation.x = (event.clientY / window.innerHeight) * 2;
+            rose.rotation.y = (event.clientX / window.innerWidth) * 4;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            rose.rotation.z += 0.001;
+            renderer.render(scene, camera);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
